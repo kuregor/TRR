@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Web3 from "web3";
 
 // TODO: подставь адрес своего токена в сети (Sepolia или другой)
-const TOKEN_ADDRESS = "0x6a3586a1c893c35a1777fcc24e40eb898a95a474";
+const TOKEN_ADDRESS = "0xb8f6E68F308Fb544F75aAA30e2f841d112e66199";
 
 // Минимальный ABI для нашего контракта Token
 const TOKEN_ABI = [
@@ -280,7 +280,7 @@ export default function Home() {
             address: TOKEN_ADDRESS,
             symbol: tokenSymbol || "TKN",
             decimals: decimals,
-            // image: "https://example.com/logo.png", // можно добавить логотип
+            // image: "https://example.com/logo.png",
           },
         },
       });
@@ -293,113 +293,246 @@ export default function Home() {
   const formattedBalance = fromTokenUnits(userBalanceRaw, decimals);
 
   return (
-    <div className="min-h-screen bg-[#F4F4F5] flex items-center justify-center p-6">
-      <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
-        {!userAddress ? (
-          <button
-            onClick={handleConnect}
-            className="w-full py-4 rounded-xl bg-[#111827] text-white text-lg font-semibold hover:bg-[#1F2937] transition"
-          >
-            Подключить MetaMask
-          </button>
-        ) : (
-          <>
-            <div className="space-y-2">
-              <div className="text-sm text-[#6B7280]">
-                <span className="font-semibold text-[#111827]">
-                  Подключённый адрес:
-                </span>
-                <br />
-                <span className="break-all">{userAddress}</span>
-              </div>
-              <div className="text-sm text-[#6B7280]">
-                <span className="font-semibold text-[#111827]">
-                  Токен:
-                </span>{" "}
-                {tokenName} ({tokenSymbol}), decimals = {decimals}
-                <br />
-                <span className="font-semibold text-[#111827]">
-                  Ваш баланс:
-                </span>{" "}
-                {formattedBalance} {tokenSymbol}
-              </div>
-              <div className="text-xs text-[#6B7280]">
-                Владелец контракта:{" "}
-                {isOwner ? (
-                  <span className="text-green-600 font-semibold">
-                    вы являетесь владельцем
-                  </span>
-                ) : (
-                  <span className="text-[#6B7280]">
-                    вы не являетесь владельцем
-                  </span>
-                )}
+    <div className="min-h-screen bg-slate-950 text-slate-50">
+      {/* Top bar */}
+      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-10">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-base font-semibold tracking-tight">
+              Token dApp
+            </h1>
+            <p className="text-[11px] text-slate-400">
+              Управление ERC-20 токеном: баланс, перевод и чеканка.
+            </p>
+          </div>
+
+          {!userAddress ? (
+            <button
+              onClick={handleConnect}
+              className="inline-flex items-center gap-2 rounded-md border border-emerald-500/60 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-200 hover:bg-emerald-500/15 transition"
+            >
+              Подключить MetaMask
+            </button>
+          ) : (
+            <div className="flex flex-col items-end text-right text-[11px]">
+              <span className="text-slate-400">Адрес кошелька</span>
+              <span className="mt-1 max-w-xs truncate rounded-md bg-slate-900 px-3 py-1 font-mono text-[10px]">
+                {userAddress}
+              </span>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <main className="mx-auto flex max-w-5xl gap-5 px-4 py-6">
+        {/* Левая колонка */}
+        <div className="flex w-full flex-col gap-4 md:w-[50%]">
+          {/* Инфа о токене / инструкции */}
+          <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+            <h2 className="text-sm font-semibold">Подключение и токен</h2>
+            <p className="mt-1 text-[11px] text-slate-400">
+              1. Подключите MetaMask. <br />
+              2. Приложение прочитает имя, символ, decimals и ваш баланс. <br />
+              3. Используйте формы ниже для перевода и чеканки токенов.
+            </p>
+
+            <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px]">
+              <div className="text-slate-400">Адрес токена:</div>
+              <div className="mt-1 font-mono text-[10px] text-slate-200 break-all">
+                {TOKEN_ADDRESS}
               </div>
             </div>
+          </section>
 
-            <div className="border-t border-[#E5E7EB] pt-4 space-y-3">
-              <h2 className="text-lg font-semibold text-[#111827]">
-                Отправить токен (transfer)
+          {/* Transfer */}
+          <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">
+                Отправка токенов (transfer)
               </h2>
-              <input
-                className="w-full border rounded-xl p-3 text-sm bg-[#F9FAFB] text-[#111827]"
-                placeholder="Адрес получателя"
-                value={transferTo}
-                onChange={(e) => setTransferTo(e.target.value)}
-              />
-              <input
-                className="w-full border rounded-xl p-3 text-sm bg-[#F9FAFB] text-[#111827]"
-                placeholder={`Сумма в ${tokenSymbol} (например, 1.5)`}
-                value={transferAmount}
-                onChange={(e) => setTransferAmount(e.target.value)}
-              />
+              {loading && (
+                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-amber-300">
+                  Обработка…
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-[11px] text-slate-400">
+              Переведите {tokenSymbol} на другой адрес.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              <label className="block text-xs font-medium text-slate-200">
+                Адрес получателя
+                <input
+                  className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950/60 px-2 py-2 text-xs text-slate-50 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  placeholder="0x..."
+                  value={transferTo}
+                  onChange={(e) => setTransferTo(e.target.value)}
+                />
+              </label>
+
+              <label className="block text-xs font-medium text-slate-200">
+                Сумма
+                <input
+                  className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950/60 px-2 py-2 text-xs text-slate-50 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  placeholder={`Сумма в ${tokenSymbol} (например, 1.5)`}
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                />
+              </label>
+
               <button
                 onClick={handleTransfer}
-                disabled={loading}
-                className="px-4 py-3 rounded-xl bg-[#111827] text-white text-sm font-medium hover:bg-[#1F2937] transition disabled:opacity-60"
+                disabled={loading || !userAddress}
+                className="mt-2 inline-flex w-full items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-xs font-semibold text-slate-50 hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Выполнение..." : "Отправить токены"}
+                {loading ? "Выполнение…" : "Отправить"}
               </button>
             </div>
+          </section>
 
-            {isOwner && (
-              <div className="border-t border-[#E5E7EB] pt-4 space-y-3">
-                <h2 className="text-lg font-semibold text-[#111827]">
-                  Чеканка токенов (mint) – только для владельца
-                </h2>
-                <input
-                  className="w-full border rounded-xl p-3 text-sm bg-[#F9FAFB] text-[#111827]"
-                  placeholder="Адрес получателя (кто получит новые токены)"
-                  value={mintTo}
-                  onChange={(e) => setMintTo(e.target.value)}
-                />
-                <input
-                  className="w-full border rounded-xl p-3 text-sm bg-[#F9FAFB] text-[#111827]"
-                  placeholder={`Сумма в ${tokenSymbol} (например, 10)`}
-                  value={mintAmount}
-                  onChange={(e) => setMintAmount(e.target.value)}
-                />
+          {/* Mint – только для владельца */}
+          {isOwner && (
+            <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+              <h2 className="text-sm font-semibold">Чеканка токенов (mint)</h2>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Доступно только владельцу контракта. Позволяет выпускать новые
+                токены.
+              </p>
+
+              <div className="mt-3 space-y-3">
+                <label className="block text-xs font-medium text-slate-200">
+                  Адрес получателя
+                  <input
+                    className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950/60 px-2 py-2 text-xs text-slate-50 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    placeholder="Кто получит новые токены"
+                    value={mintTo}
+                    onChange={(e) => setMintTo(e.target.value)}
+                  />
+                </label>
+
+                <label className="block text-xs font-medium text-slate-200">
+                  Сумма
+                  <input
+                    className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950/60 px-2 py-2 text-xs text-slate-50 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    placeholder={`Сумма в ${tokenSymbol} (например, 10)`}
+                    value={mintAmount}
+                    onChange={(e) => setMintAmount(e.target.value)}
+                  />
+                </label>
+
                 <button
                   onClick={handleMint}
-                  disabled={loading}
-                  className="px-4 py-3 rounded-xl bg-[#111827] text-white text-sm font-medium hover:bg-[#1F2937] transition disabled:opacity-60"
+                  disabled={loading || !userAddress}
+                  className="mt-2 inline-flex w-full items-center justify-center rounded-md bg-emerald-500 px-3 py-2 text-xs font-semibold text-slate-950 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loading ? "Выполнение..." : "Чеканить токены"}
+                  {loading ? "Выполнение…" : "Чеканить токены"}
                 </button>
               </div>
-            )}
+            </section>
+          )}
 
-            <div className="border-t border-[#E5E7EB] pt-4">
-              <button
-                onClick={handleAddToMetaMask}
-                className="px-4 py-3 rounded-xl border border-[#D1D5DB] text-sm font-medium text-[#111827] hover:bg-[#F3F4F6] transition"
-              >
-                Добавить токен в MetaMask (EIP-747)
-              </button>
+          {/* Добавить в MetaMask */}
+          <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+            <h2 className="text-sm font-semibold">Интеграция с MetaMask</h2>
+            <p className="mt-1 text-[11px] text-slate-400">
+              Добавьте токен в интерфейс MetaMask (EIP-747), чтобы видеть баланс
+              прямо в кошельке.
+            </p>
+            <button
+              onClick={handleAddToMetaMask}
+              className="mt-3 inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-[11px] font-medium text-slate-100 hover:bg-slate-900"
+            >
+              Добавить токен в MetaMask
+            </button>
+          </section>
+        </div>
+
+        {/* Правая колонка */}
+        <div className="hidden h-full flex-1 flex-col gap-4 md:flex">
+          <section className="flex min-h-[360px] flex-1 flex-col rounded-xl border border-slate-800 bg-slate-950/80 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+              <div>
+                <h2 className="text-sm font-semibold">Информация о токене</h2>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Параметры токена и ваш текущий баланс.
+                </p>
+              </div>
+              {loading && (
+                <span className="rounded-full bg-slate-900 px-3 py-1 text-[10px] text-amber-300">
+                  Обновление…
+                </span>
+              )}
             </div>
-          </>
-        )}
-      </div>
+
+            <div className="flex-1 space-y-3 px-4 py-4 text-xs">
+              <div className="rounded-lg bg-slate-900/80 px-3 py-3">
+                <div className="text-[11px] uppercase tracking-wide text-slate-400">
+                  Токен
+                </div>
+                <div className="mt-1 text-sm font-semibold text-slate-50">
+                  {tokenName} ({tokenSymbol})
+                </div>
+                <div className="mt-1 text-[11px] text-slate-400">
+                  Decimals:{" "}
+                  <span className="font-mono text-slate-200">
+                    {decimals}
+                  </span>
+                </div>
+                <div className="mt-2 text-[11px] text-slate-400">
+                  Адрес контракта:
+                  <div className="mt-1 truncate font-mono text-[10px] text-slate-300">
+                    {TOKEN_ADDRESS}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-slate-900/80 px-3 py-3">
+                <div className="text-[11px] uppercase tracking-wide text-slate-400">
+                  Ваш баланс
+                </div>
+                <div className="mt-1 text-lg font-semibold text-emerald-300">
+                  {formattedBalance} {tokenSymbol}
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-slate-900/80 px-3 py-3">
+                <div className="text-[11px] uppercase tracking-wide text-slate-400">
+                  Владелец контракта
+                </div>
+                <div className="mt-1 text-[13px]">
+                  {isOwner ? (
+                    <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-200">
+                      Вы являетесь владельцем
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-slate-700 px-2 py-0.5 text-[11px] font-medium text-slate-200">
+                      Вы не являетесь владельцем
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 text-[11px] text-slate-400">
+                  Только владелец может вызывать функцию{" "}
+                  <span className="font-mono">mint</span> и выпускать новые
+                  токены.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {!userAddress && (
+            <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-[11px] text-amber-100">
+              Для работы с токеном подключите MetaMask в верхней панели.
+            </div>
+          )}
+        </div>
+      </main>
+
+      {!userAddress && (
+        <div className="px-4 pb-8 text-center text-xs text-slate-400 md:hidden">
+          Для работы с приложением подключите кошелёк MetaMask.
+        </div>
+      )}
     </div>
   );
 }

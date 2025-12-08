@@ -3,55 +3,53 @@
 import { useEffect, useState } from "react";
 import Web3 from "web3";
 
-const POSTER_ADDRESS = "0x693dCDaD69C23063EdB3dbAFe1F03F2576326a6E";
-
-//import PosterArtifact from "../../artifacts/contracts/Poster.sol/Poster.json";
+const POSTER_ADDRESS = "0x38a12C83c2a834168d910BbAA47336b6787c575b";
 
 const POSTER_ABI = [
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address",
       },
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "content",
-        "type": "string"
+        indexed: false,
+        internalType: "string",
+        name: "content",
+        type: "string",
       },
       {
-        "indexed": true,
-        "internalType": "string",
-        "name": "tag",
-        "type": "string"
-      }
+        indexed: false,
+        internalType: "string",
+        name: "tag",
+        type: "string",
+      },
     ],
-    "name": "NewPost",
-    "type": "event"
+    name: "NewPost",
+    type: "event",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "content",
-        "type": "string"
+        internalType: "string",
+        name: "content",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "tag",
-        "type": "string"
-      }
+        internalType: "string",
+        name: "tag",
+        type: "string",
+      },
     ],
-    "name": "post",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function",
-  }
-]
+    name: "post",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
 
 export default function Home() {
   const [web3, setWeb3] = useState<any>(null);
@@ -87,20 +85,14 @@ export default function Home() {
 
     setLoading(true);
     try {
-      // 1) Получаем номер последнего блока как обычное число
       const latestRaw = await web3.eth.getBlockNumber();
       const latest = Number(latestRaw);
 
-      // 2) Ограничение диапазона (например, последние 20 000 блоков)
       const RANGE = 20000;
       const fromBlock = Math.max(0, latest - RANGE);
 
-      console.log("latest:", latest);
-      console.log("fromBlock:", fromBlock);
-
-      // 3) Загружаем события
       const events = await contract.getPastEvents("NewPost", {
-        fromBlock: fromBlock,
+        fromBlock,
         toBlock: "latest",
       });
 
@@ -118,7 +110,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     if (contract) loadPosts();
@@ -138,12 +129,9 @@ export default function Home() {
     try {
       setLoading(true);
 
-      // сначала пробуем оценить газ, чтобы увидеть, не ревертится ли вызов
       const gas = await contract.methods
         .post(content, tag)
         .estimateGas({ from: userAddress });
-
-      console.log("Estimated gas:", gas.toString());
 
       const tx = await contract.methods
         .post(content, tag)
@@ -163,101 +151,225 @@ export default function Home() {
     }
   };
 
-
   const filteredPosts = posts.filter((p) =>
     filterTag ? p.tag.toLowerCase().includes(filterTag.toLowerCase()) : true
   );
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F4F4F5] p-8 font-sans">
-      <div className="w-full max-w-3xl bg-white p-8 rounded-2xl shadow-xl">
+    <div className="min-h-screen bg-slate-950 text-slate-50">
+      {/* Top bar */}
+      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-10">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-base font-semibold tracking-tight">
+              Poster dApp
+            </h1>
+            <p className="text-[11px] text-slate-400">
+              Постинг сообщений в смарт-контракт и чтение событий NewPost из
+              сети.
+            </p>
+          </div>
 
-        {!userAddress ? (
-          <button
-            onClick={handleConnect}
-            className="w-full py-4 rounded-xl bg-[#333333] text-white text-lg font-semibold hover:bg-[#4A4A4A] transition"
-          >
-            Connect MetaMask
-          </button>
-        ) : (
-          <div className="space-y-6">
-
-            {/* Connected address */}
-            <div className="text-sm text-[#6B7280]">
-              <span className="font-semibold text-[#1C1C1E]">Connected:</span>
-              <br />
-              <span className="break-all">{userAddress}</span>
+          {!userAddress ? (
+            <button
+              onClick={handleConnect}
+              className="inline-flex items-center gap-2 rounded-md border border-emerald-500/60 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-200 hover:bg-emerald-500/15 transition"
+            >
+              Подключить MetaMask
+            </button>
+          ) : (
+            <div className="flex flex-col items-end text-right text-[11px]">
+              <span className="text-slate-400">Адрес кошелька</span>
+              <span className="mt-1 max-w-xs truncate rounded-md bg-slate-900 px-3 py-1 font-mono text-[10px]">
+                {userAddress}
+              </span>
             </div>
+          )}
+        </div>
+      </header>
 
-            {/* Create post */}
-            <div className="space-y-3">
-              <h2 className="font-semibold text-lg text-[#1C1C1E]">Создать пост</h2>
+      <main className="mx-auto flex max-w-5xl gap-5 px-4 py-6">
+        {/* Left column */}
+        <div className="flex w-full flex-col gap-4 md:w-[45%]">
+          {/* Info card */}
+          <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+            <h2 className="text-sm font-semibold">Подключение</h2>
+            <p className="mt-1 text-[11px] text-slate-400">
+              1. Подключите MetaMask.{" "}
+              <br />
+              2. Введите текст и тег. <br />
+              3. Отправьте транзакцию в контракт Poster.
+            </p>
 
-              <textarea
-                className="w-full border rounded-xl p-3 text-sm text-[#1C1C1E] bg-[#F9FAFB]"
-                rows={3}
-                placeholder="Текст сообщения"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-              />
-              <input
-                className="w-full border rounded-xl p-3 text-sm text-[#1C1C1E] bg-[#F9FAFB]"
-                placeholder="Tag (строка)"
-                value={tag}
-                onChange={(e) => setTag(e.target.value)}
-              />
+            <div className="mt-3 rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2 text-[11px]">
+              <span className="text-slate-400">Адрес Poster:</span>
+              <div className="mt-1 font-mono text-[10px] text-slate-200 break-all">
+                {POSTER_ADDRESS}
+              </div>
+            </div>
+          </section>
+
+          {/* New post form */}
+          <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">Создать пост</h2>
+              {loading && (
+                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-amber-300">
+                  Обработка…
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-[11px] text-slate-400">
+              Сообщение и тег будут сохранены через событие NewPost в блокчейне.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              <label className="block text-xs font-medium text-slate-200">
+                Текст сообщения
+                <textarea
+                  className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950/60 px-2 py-2 text-xs text-slate-50 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  rows={4}
+                  placeholder="Введите текст, который хотите отправить…"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                />
+              </label>
+
+              <label className="block text-xs font-medium text-slate-200">
+                Тег
+                <input
+                  className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950/60 px-2 py-2 text-xs text-slate-50 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  placeholder="Например: general, dev, fun"
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                />
+              </label>
 
               <button
                 onClick={handlePost}
-                disabled={loading}
-                className="px-4 py-3 rounded-xl bg-[#333333] text-white text-sm font-medium hover:bg-[#4A4A4A] transition disabled:opacity-60"
+                disabled={loading || !userAddress}
+                className="mt-2 inline-flex w-full items-center justify-center rounded-md bg-emerald-500 px-3 py-2 text-xs font-semibold text-slate-950 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Отправка..." : "Отправить в контракт"}
+                {userAddress
+                  ? loading
+                    ? "Отправка…"
+                    : "Отправить пост"
+                  : "Сначала подключите MetaMask"}
               </button>
             </div>
+          </section>
 
-            {/* Filter */}
-            <div className="space-y-3">
-              <h2 className="font-semibold text-lg text-[#1C1C1E]">Фильтр по тегу</h2>
+          {/* Filter */}
+          <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+            <h2 className="text-sm font-semibold">Фильтр по тегу</h2>
+            <p className="mt-1 text-[11px] text-slate-400">
+              Отображаются только те посты, тег которых содержит указанную
+              подстроку.
+            </p>
+
+            <div className="mt-3 flex flex-col gap-2">
               <input
-                className="w-full border rounded-xl p-3 text-sm text-[#1C1C1E] bg-[#F9FAFB]"
-                placeholder="Введите строку для фильтрации по tag"
+                className="w-full rounded-md border border-slate-700 bg-slate-950/60 px-2 py-2 text-xs text-slate-50 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                placeholder="Например: dev"
                 value={filterTag}
                 onChange={(e) => setFilterTag(e.target.value)}
               />
               <button
                 onClick={loadPosts}
-                className="px-4 py-3 rounded-xl border text-sm font-medium hover:bg-[#F1F1F1] transition"
+                className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-[11px] font-medium text-slate-100 hover:bg-slate-800"
               >
-                Обновить посты из блокчейна
+                Обновить список постов
               </button>
             </div>
+          </section>
+        </div>
 
-            {/* Posts */}
-            <div className="space-y-3">
-              <h2 className="font-semibold text-lg text-[#1C1C1E]">Посты</h2>
+        {/* Right column */}
+        <div className="hidden h-full flex-1 flex-col gap-4 md:flex">
+          <section className="flex min-h-[360px] flex-1 flex-col rounded-xl border border-slate-800 bg-slate-950/80 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+              <div>
+                <h2 className="text-sm font-semibold">Лента постов</h2>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  События NewPost, полученные из блокчейна.
+                </p>
+              </div>
+              {loading && (
+                <span className="rounded-full bg-slate-900 px-3 py-1 text-[10px] text-amber-300">
+                  Загрузка…
+                </span>
+              )}
+            </div>
 
-              {loading && <div className="text-sm text-[#6B7280]">Загрузка…</div>}
+            <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3 text-xs">
               {!loading && filteredPosts.length === 0 && (
-                <div className="text-sm text-[#6B7280]">Постов пока нет</div>
+                <div className="mt-10 rounded-lg border border-dashed border-slate-700 bg-slate-900/60 px-4 py-5 text-center text-[11px] text-slate-400">
+                  Посты отсутствуют или не соответствуют фильтру по тегу.
+                </div>
               )}
 
               {filteredPosts.map((p, i) => (
-                <div key={i} className="border rounded-xl p-4 bg-[#F9FAFB] text-sm">
-                  <div className="text-xs text-[#6B7280] mb-1">
-                    User: {p.user}
+                <article
+                  key={i}
+                  className="relative flex flex-col gap-1 rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="max-w-[70%] truncate font-mono text-[10px] text-slate-400">
+                      {p.user}
+                    </span>
+                    <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-200">
+                      {p.tag}
+                    </span>
                   </div>
-                  <div className="text-[#1C1C1E] mb-1">{p.content}</div>
-                  <div className="text-xs text-[#6B7280]">
-                    Tag (indexed): {p.tag}
-                  </div>
-                </div>
+                  <p className="mt-1 text-[13px] leading-snug text-slate-50 whitespace-pre-wrap">
+                    {p.content}
+                  </p>
+                </article>
               ))}
             </div>
+          </section>
 
+          {!userAddress && (
+            <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-[11px] text-amber-100">
+              Для просмотра и отправки постов подключите MetaMask в верхней
+              панели.
+            </div>
+          )}
+        </div>
+
+        {/* Mobile posts (when no right column) */}
+        <div className="mt-4 flex w-full flex-col gap-3 md:hidden">
+          <h2 className="text-sm font-semibold text-slate-100">
+            Лента постов
+          </h2>
+          <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/80 p-3 text-xs">
+            {!loading && filteredPosts.length === 0 && (
+              <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/60 px-3 py-4 text-center text-[11px] text-slate-400">
+                Посты отсутствуют или не соответствуют фильтру по тегу.
+              </div>
+            )}
+
+            {filteredPosts.map((p, i) => (
+              <article
+                key={i}
+                className="relative flex flex-col gap-1 rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="max-w-[70%] truncate font-mono text-[10px] text-slate-400">
+                    {p.user}
+                  </span>
+                  <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-200">
+                    {p.tag}
+                  </span>
+                </div>
+                <p className="mt-1 text-[13px] leading-snug text-slate-50 whitespace-pre-wrap">
+                  {p.content}
+                </p>
+              </article>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

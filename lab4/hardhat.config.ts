@@ -37,8 +37,7 @@ export default defineConfig({
       type: "http",
       chainType: "l1",
       url: "https://ethereum-sepolia-rpc.publicnode.com",
-      accounts: ['c35febb5f15efeef31d7d6847d115872ebedd0e46179b4ee87b69e995f5a0c9f'],
+      accounts: ["c35febb5f15efeef31d7d6847d115872ebedd0e46179b4ee87b69e995f5a0c9f"],
     },
   },
 });
-1

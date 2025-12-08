@@ -37,9 +37,8 @@ export default defineConfig({
       type: "http",
       chainType: "l1",
       url: "https://ethereum-sepolia-rpc.publicnode.com",
-      accounts: ['c35febb5f15efeef31d7d6847d115872ebedd0e46179b4ee87b69e995f5a0c9f'],
-      chainId: 11155111,
-      timeout: 200000,
+      accounts: ['619fdff63912747b9f946468ab7fa71ffbb45725f204f6b00a4e1748f99005c9'],
     },
   },
 });
+1

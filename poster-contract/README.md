@@ -4,7 +4,7 @@
 - Remove-Item -Recurse -Force ignition\deployments 
 - npx hardhat test
 - npx hardhat compile
-- npx hardhat ignition deploy ignition/mod+-ules/Poster-deploy.ts --network sepolia
+- npx hardhat ignition deploy ignition/modules/Poster-deploy.ts --network sepolia
 - Добавить в poster-ui/app/page.tsx АДРЕС-КОНТРАКТА в POSTER_ADRESS
 - npx hardhat verify --network sepolia АДРЕС-КОНТРАКТА
 

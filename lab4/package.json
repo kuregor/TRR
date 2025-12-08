@@ -1,5 +1,5 @@
 {
-  "name": "mod-poster-contract",
+  "name": "lab4",
   "version": "1.0.0",
   "type": "module",
   "devDependencies": {
@@ -12,6 +12,7 @@
     "viem": "^2.41.2"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.4.0"
+    "@openzeppelin/contracts": "^5.4.0",
+    "web3": "^4.16.0"
   }
 }
